@@ -53,9 +53,8 @@ class Beers extends React.Component {
           <Modal.Content image scrolling>
           {modalBeer.labels ? 
             <Image
-              size='medium'
+              size='large'
               src={modalBeer.labels.medium}
-              wrapped
             />
           :
             <Icon name='beer' size='massive'/>
@@ -80,10 +79,10 @@ class Beers extends React.Component {
           <Grid.Column>
             <Table>
               <Table.Header>
-                <Table.HeaderCell>Icon</Table.HeaderCell>
+                <Table.HeaderCell>Label</Table.HeaderCell>
                 <Table.HeaderCell>Name</Table.HeaderCell>
-                <Table.HeaderCell>Style</Table.HeaderCell>
-                <Table.HeaderCell>ABV</Table.HeaderCell>
+                <Table.HeaderCell textAlign='center'>Style</Table.HeaderCell>
+                <Table.HeaderCell textAlign='right'>ABV</Table.HeaderCell>
               </Table.Header>
             </Table>
               <div style={styles.scroller}>
