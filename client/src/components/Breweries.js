@@ -9,15 +9,20 @@ import {
   Modal,
   Icon,
   Card,
+  Input,
 } from 'semantic-ui-react';
 import InfiniteScroll from 'react-infinite-scroller';
 
 class Breweries extends React.Component {
 
-  state = { visible: [], page: 1, totalPages: 0, modalOpen: false, modalBrewery: {} }
+  state = { searchValue: '', resultsOrAll: 'All Breweries', visible: [], page: 1, totalPages: 0, modalOpen: false, modalBrewery: {} }
+
+  getFirstPage() {
+    axios.get(`/api/all_breweries?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+  }
 
   componentDidMount() {
-    axios.get(`/api/all_breweries?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+    this.getFirstPage();
   }
 
   loadMore = () => {
@@ -37,13 +42,32 @@ class Breweries extends React.Component {
     })
   }
 
+  resetSearch = () => {
+    this.setState({ page: 1, visible: [], value: '', resultsOrAll: 'All Breweries' });
+    this.getFirstPage();
+  }
+
+  handleSearchChange = (e) => {
+    this.setState({ searchValue: e.target.value })
+
+    if (this.state.searchValue.length < 1)
+      this.resetSearch()
+
+    if (this.state.searchValue.length >= 3) {
+      this.setState({ resultsOrAll: 'Search Results'})
+      axios.get(`/api/search_breweries?query=${this.state.searchValue}`)
+        .then( res =>  this.setState({ visible: res.data.entries})
+        )
+      }
+  }
+
   render() {
 
     let open = {}
     if (this.state.modalOpen) 
       open = { open: true }
     
-    const { visible, page, totalPages, modalBrewery } = this.state
+    const { resultsOrAll, visible, page, totalPages, modalBrewery } = this.state
 
     return (
       <div>
@@ -60,12 +84,34 @@ class Breweries extends React.Component {
           }
             <Modal.Description>
               <Header>{modalBrewery.name_short_display}</Header>
-
+              {modalBrewery.hasOwnProperty('description')
+                ? <p>{modalBrewery.description}</p> 
+                : <p><i>no description</i></p>
+              }
+              {modalBrewery.hasOwnProperty('website')
+                ? <a href={modalBrewery.website}><Header style={styles.weblink} as='h5'>Official Website</Header></a>
+                : <Header as='h5'>(no website indicated)</Header>
+              }
             </Modal.Description>
           </Modal.Content>
         </Modal>
       <div>
-        <Header style={styles.mastHead}>All Breweries</Header>
+        <Grid>
+          <Grid.Column width={4}>
+            <Input 
+              size='small'
+              icon='search' 
+              placeholder='Search...' 
+              onChange={this.handleSearchChange}
+              value={this.state.searchValue}
+            />
+            </Grid.Column>
+            <Grid.Column width={8}>
+              <Header style={styles.mastHead}>{resultsOrAll}</Header>
+            </Grid.Column>
+            <Grid.Column width={4}>
+          </Grid.Column>
+        </Grid>
         <Divider hidden />
         <Grid>
           <div style={styles.scroller}>
@@ -131,6 +177,12 @@ const styles = {
   numbers : {
     fontStyle: 'italic',
     fontWeight: 'lighter',
+  },
+  weblink: {
+    color: 'blue',
+    cursor: 'pointer',
+    fontStyle: 'italic',
+    fontWeight: 'lighter'
   }
 }
 

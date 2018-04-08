@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import _ from 'lodash';
 import {
   Header,
   List,
@@ -10,16 +11,21 @@ import {
   Image,
   Modal,
   Icon,
+  Input,
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroller';
 
 class Beers extends React.Component {
 
-  state = { visible: [], page: 1, totalPages: 0, modalOpen: false, modalBeer: {} }
+  state = { resultsOrAll: 'All Beers', visible: [], searchValue: '', page: 1, totalPages: 0, modalOpen: false, modalBeer: {} }
+
+  getFirstPage() {
+    axios.get(`/api/all_beers?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+  }
 
   componentDidMount() {
-    axios.get(`/api/all_beers?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+    this.getFirstPage()
   }
 
   loadMore = () => {
@@ -41,10 +47,31 @@ class Beers extends React.Component {
 
   getAbv = (entry) => {
     if (!entry.hasOwnProperty('abv')) {
-      return `~${(parseFloat(entry.style.abv_min) + parseFloat(entry.style.abv_max) / 2).toFixed(2)}`
+      if(!entry.hasOwnProperty('style.abv_min') || !entry.hasOwnProperty('style.abv_max')) 
+        return "N/A"
+      else
+        return `~${(parseFloat(entry.style.abv_min) + parseFloat(entry.style.abv_max) / 2).toFixed(2)}`
     } else {
       return (entry.abv)
     }
+  }
+
+  resetSearch = () => {
+    this.setState({ isLoading: false, results: [], value: '', resultsOrAll: 'All Beers' });
+    this.getFirstPage();
+  }
+
+  handleSearchChange = (e) => {
+    this.setState({ searchValue: e.target.value })
+
+    if (this.state.searchValue.length < 1) return this.resetSearch()
+
+    if (this.state.searchValue.length >= 3) {
+      this.setState({ resultsOrAll: 'Search Results'})
+      axios.get(`/api/search_beers?query=${this.state.searchValue}`)
+        .then( res =>  this.setState({ visible: res.data.entries})
+        )
+      }
   }
 
   render() {
@@ -52,7 +79,7 @@ class Beers extends React.Component {
     if (this.state.modalOpen) 
       open = { open: true }
     
-    const { visible, page, totalPages, modalBeer } = this.state
+    const { resultsOrAll, visible, searchValue, results, isLoading, page, totalPages, modalBeer } = this.state
 
     return (
       <div>
@@ -85,7 +112,22 @@ class Beers extends React.Component {
           </Modal.Content>
         </Modal>
       <div>
-        <Header style={styles.mastHead}>All Beers</Header>
+        <Grid>
+          <Grid.Column width={4}>
+            <Input 
+              size='small'
+              icon='search' 
+              placeholder='Search...' 
+              onChange={this.handleSearchChange}
+              value={this.state.searchValue}
+            />
+          </Grid.Column>
+          <Grid.Column width={8}>
+            <Header style={styles.mastHead}>{resultsOrAll}</Header>
+          </Grid.Column>
+          <Grid.Column width={4}>
+          </Grid.Column>
+        </Grid>
         <Divider hidden />
         <Grid>
           <Grid.Column>
