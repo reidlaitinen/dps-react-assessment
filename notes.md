@@ -12,6 +12,9 @@ Started: 2018-04-04 7:30 PM
 
 remarks:
   - why do I have to check presence of .styles before I can use any of it?
+  - why did I have to use some style hack to fix the modal alignment?
+    see: https://github.com/Semantic-Org/Semantic-UI-React/issues/2584
+  
 
 
 TODOS (Little)
@@ -26,6 +29,7 @@ TODOS (Little)
 TODOS (Medium)
   + Setup Breweries / info
     - use cards instead of list?
+  + Responsive stuff (computer/tablet/phone)
 
 TODOS (Big)
   + Beer name search

@@ -19,7 +19,7 @@ class Beers extends React.Component {
   state = { visible: [], page: 1, totalPages: 0, modalOpen: false, modalBeer: {} }
 
   componentDidMount() {
-    axios.get(`/api/all_beers?per_page=${10}`).then((res) => {this.setState({ totalPages: 7295, visible: res.data.entries }) })
+    axios.get(`/api/all_beers?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
   }
 
   loadMore = () => {
@@ -37,6 +37,14 @@ class Beers extends React.Component {
     this.setState( state => {
       return { modalOpen: !this.state.modalOpen, modalBeer: beer }
     })
+  }
+
+  getAbv = (entry) => {
+    if (!entry.hasOwnProperty('abv')) {
+      return `~${(parseFloat(entry.style.abv_min) + parseFloat(entry.style.abv_max) / 2).toFixed(2)}`
+    } else {
+      return (entry.abv)
+    }
   }
 
   render() {
@@ -68,6 +76,10 @@ class Beers extends React.Component {
               {modalBeer.hasOwnProperty('style')
                 ? <p>{modalBeer.style.description}</p> 
                 : <p><i>no description</i></p>
+              }
+              {modalBeer.hasOwnProperty('style')
+                ? <h5 style={styles.numbers}>ABV: {this.getAbv(this.state.modalBeer)}, IBU min/max: {modalBeer.style.ibu_min}/{modalBeer.style.ibu_max}</h5>
+                : <h5 style={styles.numbers}>ABV/IBU info not present</h5>
               }
             </Modal.Description>
           </Modal.Content>
@@ -105,12 +117,17 @@ class Beers extends React.Component {
                         :
                         <Table.Cell disabled verticalAlign='middle'>No data</Table.Cell>
                       }
-                      <Table.Cell verticalAlign='middle'>{entry.abv} %</Table.Cell>
+                      <Table.Cell verticalAlign='middle'>{this.getAbv(entry)} %</Table.Cell>
                     </Table.Row>
                     ))}
                   </Table.Body>
                 </Table>
               </InfiniteScroll>
+              <Table>
+                <Table.Footer>
+                  <Table.Cell>Scroll for more</Table.Cell>
+                </Table.Footer>
+              </Table>
             </div>
           </Grid.Column>
         </Grid>
@@ -135,6 +152,10 @@ const styles = {
     marginTop: '0px !important',
     marginLeft: 'auto',
     marginRight: 'auto'
+  },
+  numbers : {
+    fontStyle: 'italic',
+    fontWeight: 'lighter',
   }
 }
 
