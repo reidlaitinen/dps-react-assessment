@@ -23,8 +23,6 @@ TODOS (Little)
     - too high up. closeIcon shows up with its head cut off
 
 TODOS (Medium)
-  + Setup Breweries / info
-    - use cards instead of list?
   + Responsive stuff (computer/tablet/phone)
 
 TODOS (Big)
