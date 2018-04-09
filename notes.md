@@ -18,13 +18,9 @@ remarks:
 
 
 TODOS (Little)
-  + Finish beer info modal info / styling / layout
-    - ABV, IBUs, etc _below_ description
   + Fix beer list table header alignment
   + Fix beer modal alignment
     - too high up. closeIcon shows up with its head cut off
-  + ABV min/max avg if ABV not specified
-    - duh, just use a helper method... getAbv(entry)
 
 TODOS (Medium)
   + Setup Breweries / info
