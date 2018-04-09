@@ -18,10 +18,19 @@ import InfiniteScroll from 'react-infinite-scroller';
 
 class Beers extends React.Component {
 
-  state = { resultsOrAll: 'All Beers', visible: [], searchValue: '', page: 1, totalPages: 0, modalOpen: false, modalBeer: {} }
+  state = { 
+    searching: false, 
+    resultsOrAll: 'All Beers', 
+    visible: [], 
+    searchValue: '', 
+    page: 1, 
+    totalPages: 0, 
+    modalOpen: false, 
+    modalBeer: {} }
 
   getFirstPage() {
-    axios.get(`/api/all_beers?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+    axios.get(`/api/all_beers?per_page=${10}`)
+      .then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
   }
 
   componentDidMount() {
@@ -30,13 +39,22 @@ class Beers extends React.Component {
 
   loadMore = () => {
     const page = this.state.page + 1;
-    axios.get(`/api/all_beers?page=${page}&per_page=${10}`)
-    .then(res => { this.setState(
+    if (this.state.searching === false) {
+      axios.get(`/api/all_beers?page=${page}&per_page=${10}`)
+      .then(res => { this.setState(
         { visible: [...this.state.visible, ...res.data.entries],
           page: this.state.page + 1,
         }
-      );
-    });
+        );
+      });
+    } else {
+      axios.get(`/api/search_beers?query=${this.state.searchValue}&page=${page}`)
+      .then(res => {this.setState(
+        { visible: [...this.state.visible, ...res.data.entries],
+          page: this.state.page + 1,
+        }
+      )})
+    }
   }
 
   toggleModal = (beer = {}) => {
@@ -57,17 +75,18 @@ class Beers extends React.Component {
   }
 
   resetSearch = () => {
-    this.setState({ isLoading: false, results: [], value: '', resultsOrAll: 'All Beers' });
+    this.setState({ searching: false, page: 1, visible: [], value: '', resultsOrAll: 'All Beers' });
     this.getFirstPage();
   }
 
   handleSearchChange = (e) => {
     this.setState({ searchValue: e.target.value })
 
-    if (this.state.searchValue.length < 1) return this.resetSearch()
+    if (this.state.searchValue.length < 1)
+      this.resetSearch()
 
     if (this.state.searchValue.length >= 3) {
-      this.setState({ resultsOrAll: 'Search Results'})
+      this.setState({ resultsOrAll: 'Search Results', searching: true })
       axios.get(`/api/search_beers?query=${this.state.searchValue}`)
         .then( res =>  this.setState({ visible: res.data.entries})
         )

@@ -15,10 +15,19 @@ import InfiniteScroll from 'react-infinite-scroller';
 
 class Breweries extends React.Component {
 
-  state = { searchValue: '', resultsOrAll: 'All Breweries', visible: [], page: 1, totalPages: 0, modalOpen: false, modalBrewery: {} }
+  state = { 
+    searching: false, 
+    searchValue: '', 
+    resultsOrAll: 'All Breweries', 
+    visible: [], 
+    page: 1, 
+    totalPages: 0, 
+    modalOpen: false, 
+    modalBrewery: {} }
 
   getFirstPage() {
-    axios.get(`/api/all_breweries?per_page=${10}`).then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
+    axios.get(`/api/all_breweries?page=${1}&per_page=${10}`)
+      .then((res) => {this.setState({ totalPages: res.data.total_pages, visible: res.data.entries }) })
   }
 
   componentDidMount() {
@@ -43,7 +52,7 @@ class Breweries extends React.Component {
   }
 
   resetSearch = () => {
-    this.setState({ page: 1, visible: [], value: '', resultsOrAll: 'All Breweries' });
+    this.setState({ searching: false, page: 1, visible: [], resultsOrAll: 'All Breweries' });
     this.getFirstPage();
   }
 
@@ -54,7 +63,7 @@ class Breweries extends React.Component {
       this.resetSearch()
 
     if (this.state.searchValue.length >= 3) {
-      this.setState({ resultsOrAll: 'Search Results'})
+      this.setState({ resultsOrAll: 'Search Results', searching: true, visible: []})
       axios.get(`/api/search_breweries?query=${this.state.searchValue}`)
         .then( res =>  this.setState({ visible: res.data.entries})
         )
@@ -67,7 +76,7 @@ class Breweries extends React.Component {
     if (this.state.modalOpen) 
       open = { open: true }
     
-    const { resultsOrAll, visible, page, totalPages, modalBrewery } = this.state
+    const { searchValue, resultsOrAll, visible, page, totalPages, modalBrewery } = this.state
 
     return (
       <div>
@@ -101,9 +110,9 @@ class Breweries extends React.Component {
             <Input 
               size='small'
               icon='search' 
-              placeholder='Search...' 
+              placeholder='Search...'
+              value={searchValue}
               onChange={this.handleSearchChange}
-              value={this.state.searchValue}
             />
             </Grid.Column>
             <Grid.Column width={8}>
